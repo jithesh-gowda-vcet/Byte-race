@@ -106,3 +106,29 @@ def init_db(path):
 
 def get_db(path):
     return connect_db(path)
+AUTH_SCHEMA = """
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    shop_name TEXT NOT NULL,
+    owner_name TEXT NOT NULL,
+    phone TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL
+        CHECK(role IN ('owner', 'admin')),
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_role
+ON users(role);
+"""
+
+
+def init_auth_db(path):
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    conn = get_db(path)
+
+    try:
+        conn.executescript(AUTH_SCHEMA)
+        conn.commit()
+    finally:
+        conn.close()
